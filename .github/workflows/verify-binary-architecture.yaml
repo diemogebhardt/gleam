@@ -66,7 +66,11 @@ jobs:
             BINARY_PATH="${BINARY_PATH}.exe"
           fi
 
-          TARGET_ARCHITECTURE="${{ matrix.target }%%-*}"
+          case "${{ matrix.target }}" in
+            "x86_64"*) TARGET_ARCHITECTURE="x86_64" ;;
+            "aarch64"*) TARGET_ARCHITECTURE="aarch64" ;;
+            *) echo "Unknown architecture for target '${{ matrix.target }}'"; exit 1 ;;
+          esac
 
           case "${{ matrix.target }}" in
             *"-darwin"*)
