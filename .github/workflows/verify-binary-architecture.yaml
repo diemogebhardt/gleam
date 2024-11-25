@@ -102,7 +102,10 @@ jobs:
               esac
               ;;
             *"-windows-"*)
-              BINARY_ARCHITECTURE=$(powershell -Command "Get-Command ${BINARY_PATH} | Select-Object -ExpandProperty Architecture")
+              echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
+              PS_OUTPUT=$(powershell -Command "[System.Reflection.AssemblyName]::GetAssemblyName('${BINARY_PATH}').ProcessorArchitecture")
+              echo "DEBUG: PowerShell output: ${PS_OUTPUT}"
+              BINARY_ARCHITECTURE="${PS_OUTPUT}"
               echo "DEBUG: Windows binary architecture output: ${BINARY_ARCHITECTURE}"
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
