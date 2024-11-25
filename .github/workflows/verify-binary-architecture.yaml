@@ -73,6 +73,7 @@ jobs:
       - name: Verify binary architecture
         shell: bash
         run: |
+          #!/usr/bin/env bash
           set -xeuo pipefail
 
           BINARY_PATH="target/${{ matrix.target }}/release/gleam"
@@ -80,22 +81,22 @@ jobs:
             BINARY_PATH="${BINARY_PATH}.exe"
           fi
 
-          # Parse target architecture
+          echo "=== Parsing target architecture ==="
           case "${{ matrix.target }}" in
             "x86_64"*) TARGET_ARCHITECTURE="x86_64" ;;
             "aarch64"*) TARGET_ARCHITECTURE="aarch64" ;;
             *) echo "Unknown architecture for target '${{ matrix.target }}'"; exit 1 ;;
           esac
+          echo "Target architecture: ${TARGET_ARCHITECTURE}"
 
-          # Parse expected binary architecture
           case "${{ matrix.target }}" in
             *"-darwin"*)
-              FILE_OUTPUT=$(file "${BINARY_PATH}")
-              echo "DEBUG: Full file output: ${FILE_OUTPUT}"
-              FILE_CONTENT=${FILE_OUTPUT#"${BINARY_PATH}: "}
-              echo "DEBUG: After removing prefix: ${FILE_CONTENT}"
-              BINARY_ARCHITECTURE=$(echo "$FILE_CONTENT" | grep -o "x86_64\|arm64" || echo "")
-              echo "DEBUG: Found architecture: ${BINARY_ARCHITECTURE}"
+              echo "=== Checking Darwin binary ==="
+              FILE_OUTPUT=$(file -b "${BINARY_PATH}")
+              echo "File output: ${FILE_OUTPUT}"
+              BINARY_ARCHITECTURE=$(echo "${FILE_OUTPUT}" | grep -o "x86_64\|arm64" || echo "")
+              echo "Found architecture: ${BINARY_ARCHITECTURE}"
+
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86_64" ;;
                 "aarch64") EXPECTED_BINARY_ARCHITECTURE="arm64" ;;
@@ -103,12 +104,12 @@ jobs:
               esac
               ;;
             *"-linux-"*)
-              FILE_OUTPUT=$(file "${BINARY_PATH}")
-              echo "DEBUG: Full file output: ${FILE_OUTPUT}"
-              FILE_CONTENT=${FILE_OUTPUT#"${BINARY_PATH}: "}
-              echo "DEBUG: After removing prefix: ${FILE_CONTENT}"
-              BINARY_ARCHITECTURE=$(echo "$FILE_CONTENT" | grep -o "x86-64\|aarch64" || echo "")
-              echo "DEBUG: Found architecture: ${BINARY_ARCHITECTURE}"
+              echo "=== Checking Linux binary ==="
+              FILE_OUTPUT=$(file -b "${BINARY_PATH}")
+              echo "File output: ${FILE_OUTPUT}"
+              BINARY_ARCHITECTURE=$(echo "${FILE_OUTPUT}" | grep -o "x86-64\|aarch64" || echo "")
+              echo "Found architecture: ${BINARY_ARCHITECTURE}"
+
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86-64" ;;
                 "aarch64") EXPECTED_BINARY_ARCHITECTURE="aarch64" ;;
@@ -116,27 +117,26 @@ jobs:
               esac
               ;;
             *"-windows-"*)
+              echo "=== Checking Windows binary ==="
               FILE_OUTPUT=$(powershell -Command "
                 \$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}');
                 \$offset = [System.BitConverter]::ToInt32(\$bytes, 0x3c);
                 \$machine = [System.BitConverter]::ToUInt16(\$bytes, \$offset + 4);
                 Write-Output \$machine
               " 2>&1) || echo "PE check failed"
-              echo "PE Header output: ${FILE_OUTPUT}"
-
+              echo "PE header output: ${FILE_OUTPUT}"
               case "${FILE_OUTPUT}" in
                 *"34404"*) BINARY_ARCHITECTURE="X64" ;;     # 0x8664
                 *"43620"*) BINARY_ARCHITECTURE="Arm64" ;;   # 0xAA64
                 *) echo "Unknown PE machine type: ${FILE_OUTPUT}"; exit 1 ;;
               esac
+              echo "Detected architecture: ${BINARY_ARCHITECTURE}"
 
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
                 "aarch64") EXPECTED_BINARY_ARCHITECTURE="Arm64" ;;
                 *) echo "Unknown Windows architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
               esac
-
-              echo "DEBUG: Architecture checks completed"
               ;;
             *)
               echo "Unknown OS in target: '${{ matrix.target }}'"
@@ -144,10 +144,11 @@ jobs:
               ;;
           esac
 
-          # Verify binary architecture
+          echo "=== Verifying architecture ==="
           if [[ "${BINARY_ARCHITECTURE}" != "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
             echo "Architecture mismatch for '${{ matrix.target }}'"
             echo "Expected: '${EXPECTED_BINARY_ARCHITECTURE}'"
             echo "Got: '${BINARY_ARCHITECTURE}'"
             exit 1
           fi
+          echo "Architecture verification successful"
