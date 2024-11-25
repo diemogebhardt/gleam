@@ -101,18 +101,42 @@ jobs:
                 *) echo "Unknown Linux architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
               esac
               ;;
-            *"-windows-"*)
-              echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
-              PS_OUTPUT=$(powershell -Command "[System.Reflection.AssemblyName]::GetAssemblyName('${BINARY_PATH}').ProcessorArchitecture")
-              echo "DEBUG: PowerShell output: ${PS_OUTPUT}"
-              BINARY_ARCHITECTURE="${PS_OUTPUT}"
-              echo "DEBUG: Windows binary architecture output: ${BINARY_ARCHITECTURE}"
-              case "${TARGET_ARCHITECTURE}" in
-                "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
-                "aarch64") EXPECTED_BINARY_ARCHITECTURE="Arm64" ;;
-                *) echo "Unknown Windows architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
-              esac
-              ;;
+              *"-windows-"*)
+                echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
+
+                echo "=== Method 1: dumpbin ==="
+                powershell -Command "Write-Output 'Running dumpbin...'; if (Test-Path env:VCINSTALLDIR) { & \"$env:VCINSTALLDIR/bin/Hostx64/x64/dumpbin.exe\" /headers '${BINARY_PATH}' } else { Write-Output 'VCINSTALLDIR not found' }" || echo "dumpbin failed"
+
+                echo "=== Method 2: Get-Item ==="
+                powershell -Command "Write-Output 'FileDescription:'; (Get-Item '${BINARY_PATH}').VersionInfo.FileDescription; Write-Output 'Full VersionInfo:'; (Get-Item '${BINARY_PATH}').VersionInfo | Format-List" || echo "Get-Item failed"
+
+                echo "=== Method 3: Assembly check ==="
+                powershell -Command "Write-Output 'Assembly info:'; [System.Reflection.AssemblyName]::GetAssemblyName('${BINARY_PATH}').ProcessorArchitecture" || echo "Assembly check failed"
+
+                echo "=== Method 4: Get-Command ==="
+                powershell -Command "Write-Output 'Command info:'; Get-Command '${BINARY_PATH}' | Format-List" || echo "Get-Command failed"
+
+                echo "=== Method 5: File properties ==="
+                powershell -Command "Write-Output 'File properties:'; Get-Item '${BINARY_PATH}' | Format-List *" || echo "Get-Item Format-List failed"
+
+                echo "=== Method 6: Binary header check ==="
+                powershell -Command "Write-Output 'First bytes of binary:'; [System.IO.File]::ReadAllBytes('${BINARY_PATH}')[0..10] | Format-Hex" || echo "Binary check failed"
+
+                echo "DEBUG: Showing all outputs before implementing solution"
+                exit 1
+                ;;
+            # *"-windows-"*)
+            #   echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
+            #   PS_OUTPUT=$(powershell -Command "[System.Reflection.AssemblyName]::GetAssemblyName('${BINARY_PATH}').ProcessorArchitecture")
+            #   echo "DEBUG: PowerShell output: ${PS_OUTPUT}"
+            #   BINARY_ARCHITECTURE="${PS_OUTPUT}"
+            #   echo "DEBUG: Windows binary architecture output: ${BINARY_ARCHITECTURE}"
+            #   case "${TARGET_ARCHITECTURE}" in
+            #     "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
+            #     "aarch64") EXPECTED_BINARY_ARCHITECTURE="Arm64" ;;
+            #     *) echo "Unknown Windows architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
+            #   esac
+            #   ;;
             *)
               echo "Unknown OS in target: '${{ matrix.target }}'"
               exit 1
