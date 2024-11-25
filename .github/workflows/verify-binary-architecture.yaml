@@ -144,11 +144,6 @@ jobs:
               ;;
           esac
 
-          if [[ -z "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
-            echo "Unknown architecture '${TARGET_ARCHITECTURE}' for target '${{ matrix.target }}'"
-            exit 1
-          fi
-
           # Verify binary architecture
           if [[ "${BINARY_ARCHITECTURE}" != "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
             echo "Architecture mismatch for '${{ matrix.target }}'"
