@@ -102,8 +102,18 @@ jobs:
               esac
               ;;
             *"-windows-"*)
-              FILE_OUTPUT=$(file "${BINARY_PATH}")
-              echo "DEBUG: Full file output: ${FILE_OUTPUT}"
+              echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
+
+              echo "=== Testing file access ==="
+              FILETEST_OUT=$(powershell -Command "Test-Path '${BINARY_PATH}'; Write-Output 'File exists check done'" 2>&1) || echo "File test failed"
+              echo "File test output: ${FILETEST_OUT}"
+
+              echo "=== Basic file info ==="
+              FILEINFO_OUT=$(powershell -Command "Get-Item '${BINARY_PATH}' | Select-Object FullName, Length" 2>&1) || echo "File info failed"
+              echo "File info output: ${FILEINFO_OUT}"
+
+              echo "DEBUG: Basic checks completed"
+              ;;
             *)
               echo "Unknown OS in target: '${{ matrix.target }}'"
               exit 1
