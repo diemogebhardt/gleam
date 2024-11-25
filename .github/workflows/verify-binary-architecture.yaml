@@ -101,30 +101,31 @@ jobs:
                 *) echo "Unknown Linux architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
               esac
               ;;
-              *"-windows-"*)
-                echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
+            *"-windows-"*)
+              echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
 
-                echo "=== Method 1: dumpbin ==="
-                powershell -Command "Write-Output 'Running dumpbin...'; if (Test-Path env:VCINSTALLDIR) { & \"$env:VCINSTALLDIR/bin/Hostx64/x64/dumpbin.exe\" /headers '${BINARY_PATH}' } else { Write-Output 'VCINSTALLDIR not found' }" || echo "dumpbin failed"
+              echo "=== Method 1: dumpbin ==="
+              DUMPBIN_OUT=$(powershell -Command "if (Get-Command dumpbin -ErrorAction SilentlyContinue) { dumpbin /headers '${BINARY_PATH}' } else { Write-Output 'dumpbin not found' }" || echo "dumpbin check failed")
+              echo "Dumpbin output: ${DUMPBIN_OUT}"
 
-                echo "=== Method 2: Get-Item ==="
-                powershell -Command "Write-Output 'FileDescription:'; (Get-Item '${BINARY_PATH}').VersionInfo.FileDescription; Write-Output 'Full VersionInfo:'; (Get-Item '${BINARY_PATH}').VersionInfo | Format-List" || echo "Get-Item failed"
+              echo "=== Method 2: Get-Item ==="
+              GETITEM_OUT=$(powershell -Command "Get-Item '${BINARY_PATH}' | Format-List" || echo "Get-Item check failed")
+              echo "Get-Item output: ${GETITEM_OUT}"
 
-                echo "=== Method 3: Assembly check ==="
-                powershell -Command "Write-Output 'Assembly info:'; [System.Reflection.AssemblyName]::GetAssemblyName('${BINARY_PATH}').ProcessorArchitecture" || echo "Assembly check failed"
+              echo "=== Method 3: PE Header check ==="
+              PE_OUT=$(powershell -Command "\$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}'); Write-Output 'Magic number:'; \$bytes[0,1]; if (\$bytes[0,1] -eq 77,90) { Write-Output 'Valid PE file' }" || echo "PE header check failed")
+              echo "PE Header output: ${PE_OUT}"
 
-                echo "=== Method 4: Get-Command ==="
-                powershell -Command "Write-Output 'Command info:'; Get-Command '${BINARY_PATH}' | Format-List" || echo "Get-Command failed"
+              echo "=== Method 4: Get-Command ==="
+              GETCMD_OUT=$(powershell -Command "Get-Command '${BINARY_PATH}' | Format-List" || echo "Get-Command check failed")
+              echo "Get-Command output: ${GETCMD_OUT}"
 
-                echo "=== Method 5: File properties ==="
-                powershell -Command "Write-Output 'File properties:'; Get-Item '${BINARY_PATH}' | Format-List *" || echo "Get-Item Format-List failed"
+              echo "=== Method 5: PE Detail check ==="
+              PEDETAIL_OUT=$(powershell -Command "try { \$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}'); \$peOffset = [System.BitConverter]::ToInt32(\$bytes[0x3c..0x3f], 0); Write-Output ('PE Header offset: 0x{0:X}' -f \$peOffset); Write-Output 'Machine type:'; \$bytes[\$peOffset+4..\$peOffset+5] } catch { Write-Output 'Error reading PE header' }" || echo "PE detail check failed")
+              echo "PE Detail output: ${PEDETAIL_OUT}"
 
-                echo "=== Method 6: Binary header check ==="
-                powershell -Command "Write-Output 'First bytes of binary:'; [System.IO.File]::ReadAllBytes('${BINARY_PATH}')[0..10] | Format-Hex" || echo "Binary check failed"
-
-                echo "DEBUG: Showing all outputs before implementing solution"
-                exit 1
-                ;;
+              echo "DEBUG: All outputs collected, continuing with analysis"
+              ;;
             # *"-windows-"*)
             #   echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
             #   PS_OUTPUT=$(powershell -Command "[System.Reflection.AssemblyName]::GetAssemblyName('${BINARY_PATH}').ProcessorArchitecture")
