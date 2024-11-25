@@ -102,42 +102,8 @@ jobs:
               esac
               ;;
             *"-windows-"*)
-              echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
-
-              echo "=== Method 1: dumpbin ==="
-              DUMPBIN_OUT=$(powershell -Command "if (Get-Command dumpbin -ErrorAction SilentlyContinue) { dumpbin /headers '${BINARY_PATH}' } else { Write-Output 'dumpbin not found' }" || echo "dumpbin check failed")
-              echo "Dumpbin output: ${DUMPBIN_OUT}"
-
-              echo "=== Method 2: Get-Item ==="
-              GETITEM_OUT=$(powershell -Command "Get-Item '${BINARY_PATH}' | Format-List" || echo "Get-Item check failed")
-              echo "Get-Item output: ${GETITEM_OUT}"
-
-              echo "=== Method 3: PE Header check ==="
-              PE_OUT=$(powershell -Command "\$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}'); Write-Output 'Magic number:'; \$bytes[0,1]; if (\$bytes[0,1] -eq 77,90) { Write-Output 'Valid PE file' }" || echo "PE header check failed")
-              echo "PE Header output: ${PE_OUT}"
-
-              echo "=== Method 4: Get-Command ==="
-              GETCMD_OUT=$(powershell -Command "Get-Command '${BINARY_PATH}' | Format-List" || echo "Get-Command check failed")
-              echo "Get-Command output: ${GETCMD_OUT}"
-
-              echo "=== Method 5: PE Detail check ==="
-              PEDETAIL_OUT=$(powershell -Command "try { \$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}'); \$peOffset = [System.BitConverter]::ToInt32(\$bytes[0x3c..0x3f], 0); Write-Output ('PE Header offset: 0x{0:X}' -f \$peOffset); Write-Output 'Machine type:'; \$bytes[\$peOffset+4..\$peOffset+5] } catch { Write-Output 'Error reading PE header' }" || echo "PE detail check failed")
-              echo "PE Detail output: ${PEDETAIL_OUT}"
-
-              echo "DEBUG: All outputs collected, continuing with analysis"
-              ;;
-            # *"-windows-"*)
-            #   echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
-            #   PS_OUTPUT=$(powershell -Command "[System.Reflection.AssemblyName]::GetAssemblyName('${BINARY_PATH}').ProcessorArchitecture")
-            #   echo "DEBUG: PowerShell output: ${PS_OUTPUT}"
-            #   BINARY_ARCHITECTURE="${PS_OUTPUT}"
-            #   echo "DEBUG: Windows binary architecture output: ${BINARY_ARCHITECTURE}"
-            #   case "${TARGET_ARCHITECTURE}" in
-            #     "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
-            #     "aarch64") EXPECTED_BINARY_ARCHITECTURE="Arm64" ;;
-            #     *) echo "Unknown Windows architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
-            #   esac
-            #   ;;
+              FILE_OUTPUT=$(file "${BINARY_PATH}")
+              echo "DEBUG: Full file output: ${FILE_OUTPUT}"
             *)
               echo "Unknown OS in target: '${{ matrix.target }}'"
               exit 1
