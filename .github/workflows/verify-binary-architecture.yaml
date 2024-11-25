@@ -76,6 +76,8 @@ jobs:
 
           case "${{ matrix.target }}" in
             *"-darwin"*)
+              FILE_OUTPUT=$(file "${BINARY_PATH}")
+              echo "DEBUG: Darwin file output: ${FILE_OUTPUT}"
               BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "x86_64\|arm64" || echo "")
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86_64" ;;
@@ -84,6 +86,8 @@ jobs:
               esac
               ;;
             *"-linux-"*)
+              FILE_OUTPUT=$(file "${BINARY_PATH}")
+              echo "DEBUG: Linux file output: ${FILE_OUTPUT}"
               BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "x86-64\|aarch64" || echo "")
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86-64" ;;
@@ -93,6 +97,7 @@ jobs:
               ;;
             *"-windows-"*)
               BINARY_ARCHITECTURE=$(powershell -Command "Get-Command ${BINARY_PATH} | Select-Object -ExpandProperty Architecture")
+              echo "DEBUG: Windows binary architecture output: ${BINARY_ARCHITECTURE}"
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
                 "aarch64") EXPECTED_BINARY_ARCHITECTURE="Arm64" ;;
