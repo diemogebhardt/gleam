@@ -1,0 +1,114 @@
+name: verify-binary-architecture
+on: push
+# on: workflow_dispatch
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  build-release:
+    name: build-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-pc-windows-msvc
+        toolchain: [stable]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            use-cross: true
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            use-cross: true
+          # macos>=14 runs exclusively on aarch64 and will thus fail to execute properly for x64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            use-cross: false
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            use-cross: false
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            use-cross: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          target: ${{ matrix.target }}
+
+      - name: Handle Rust dependencies caching
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: v1-${{ matrix.target }}
+
+      - name: Build release binary
+        uses: clechasseur/rs-cargo@v2
+        with:
+          command: build
+          args: --release --target ${{ matrix.target }}
+          use-cross: ${{ matrix.use-cross }}
+
+      - name: Verify binary architecture
+        shell: bash
+        run: |
+          BINARY_PATH="target/${{ matrix.target }}/release/gleam"
+          if [[ "${{ matrix.target }}" == *"-windows-"* ]]; then
+            BINARY_PATH="${BINARY_PATH}.exe"
+          fi
+
+          TARGET_ARCHITECTURE="${${{ matrix.target }}%%-*}"
+
+          declare -A ARCHITECTURE_PATTERNS=(
+            ["darwin"]="x86_64\|arm64"
+            ["linux"]="x86-64\|aarch64"
+          )
+
+          declare -A ARCHITECTURE_MAP=(
+            ["darwin:x86_64"]="x86_64"
+            ["darwin:aarch64"]="arm64"
+            ["linux:x86_64"]="x86-64"
+            ["linux:aarch64"]="aarch64"
+            ["windows:x86_64"]="X64"
+            ["windows:aarch64"]="Arm64"
+          )
+
+          case "${{ matrix.target }}" in
+            *"-darwin"*)
+              BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "${ARCHITECTURE_PATTERNS["darwin"]}" || echo "")
+              EXPECTED_BINARY_ARCHITECTURE="${ARCHITECTURE_MAP["darwin:${TARGET_ARCHITECTURE}"]:-}"
+              ;;
+            *"-linux-"*)
+              BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "${ARCHITECTURE_PATTERNS["linux"]}" || echo "")
+              EXPECTED_BINARY_ARCHITECTURE="${ARCHITECTURE_MAP["linux:${TARGET_ARCHITECTURE}"]:-}"
+              ;;
+            *"-windows-"*)
+              BINARY_ARCHITECTURE=$(powershell -Command "Get-Command ${BINARY_PATH} | Select-Object -ExpandProperty Architecture")
+              EXPECTED_BINARY_ARCHITECTURE="${ARCHITECTURE_MAP["windows:${TARGET_ARCHITECTURE}"]:-}"
+              ;;
+            *)
+              echo "Unknown OS in target: '${{ matrix.target }}'"
+              exit 1
+              ;;
+          esac
+
+          if [[ -z "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
+            echo "Unknown architecture '${TARGET_ARCHITECTURE}' for target '${{ matrix.target }}'"
+            exit 1
+          fi
+
+          if [[ "${BINARY_ARCHITECTURE}" != "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
+            echo "Architecture mismatch for '${{ matrix.target }}'"
+            echo "Expected: '${EXPECTED_BINARY_ARCHITECTURE}'"
+            echo "Got: '${BINARY_ARCHITECTURE}'"
+            exit 1
+          fi
