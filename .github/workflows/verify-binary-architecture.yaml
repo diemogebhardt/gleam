@@ -112,12 +112,24 @@ jobs:
               FILEINFO_OUT=$(powershell -Command "Get-Item '${BINARY_PATH}' | Select-Object FullName, Length" 2>&1) || echo "File info failed"
               echo "File info output: ${FILEINFO_OUT}"
 
-              # Now let's check PE header for architecture
               echo "=== PE Header check ==="
-              PE_OUT=$(powershell -Command "\$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}'); if (\$bytes[0x3c]) { \$peOffset = [System.BitConverter]::ToInt32(\$bytes[0x3c..0x3f], 0); Write-Output (\$bytes[\$peOffset+4..\$peOffset+5]) }" 2>&1) || echo "PE check failed"
+              PE_OUT=$(powershell -Command "
+                \$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}');
+                \$peOffset = [System.BitConverter]::ToInt32(\$bytes, 0x3c);
+                \$machine = [System.BitConverter]::ToUInt16(\$bytes, \$peOffset + 4);
+                Write-Output \$machine
+              " 2>&1) || echo "PE check failed"
               echo "PE Header output: ${PE_OUT}"
 
-              BINARY_ARCHITECTURE="X64"  # For now hardcode to test
+              # Machine type constants:
+              # 0x8664 (34404) = AMD64
+              # 0x01c4 (452) = ARM64
+              case "${PE_OUT}" in
+                *"34404"*) BINARY_ARCHITECTURE="X64" ;;
+                *"452"*) BINARY_ARCHITECTURE="Arm64" ;;
+                *) echo "Unknown PE machine type: ${PE_OUT}"; exit 1 ;;
+              esac
+
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
                 "aarch64") EXPECTED_BINARY_ARCHITECTURE="Arm64" ;;
