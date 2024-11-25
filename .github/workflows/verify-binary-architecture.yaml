@@ -18,6 +18,7 @@ jobs:
           # - x86_64-apple-darwin
           # - aarch64-apple-darwin
           - x86_64-pc-windows-msvc
+          - aarch64-pc-windows-msvc
         toolchain: [stable]
         include:
           # - os: ubuntu-latest
@@ -35,6 +36,9 @@ jobs:
           #   use-cross: false
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+            use-cross: false
+          - os: windows-latest         # Add ARM64 Windows config
+            target: aarch64-pc-windows-msvc
             use-cross: false
     steps:
       - name: Checkout repository
