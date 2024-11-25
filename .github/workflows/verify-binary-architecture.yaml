@@ -129,8 +129,8 @@ jobs:
               # 0x8664 (34404) = AMD64
               # 0x01c4 (452) = ARM64
               case "${PE_OUT}" in
-                *"34404"*) BINARY_ARCHITECTURE="X64" ;;
-                *"452"*) BINARY_ARCHITECTURE="Arm64" ;;
+                *"34404"*) BINARY_ARCHITECTURE="X64" ;;     # 0x8664
+                *"43620"*) BINARY_ARCHITECTURE="Arm64" ;;   # 0xAA64
                 *) echo "Unknown PE machine type: ${PE_OUT}"; exit 1 ;;
               esac
 
@@ -140,7 +140,7 @@ jobs:
                 *) echo "Unknown Windows architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
               esac
 
-              echo "DEBUG: Basic checks completed"
+              echo "DEBUG: Architecture checks completed"
               ;;
             *)
               echo "Unknown OS in target: '${{ matrix.target }}'"
