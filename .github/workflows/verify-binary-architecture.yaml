@@ -77,8 +77,11 @@ jobs:
           case "${{ matrix.target }}" in
             *"-darwin"*)
               FILE_OUTPUT=$(file "${BINARY_PATH}")
-              echo "DEBUG: Darwin file output: ${FILE_OUTPUT}"
-              BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "x86_64\|arm64" || echo "")
+              echo "DEBUG: Full file output: ${FILE_OUTPUT}"
+              FILE_CONTENT=${FILE_OUTPUT#"${BINARY_PATH}: "}
+              echo "DEBUG: After removing prefix: ${FILE_CONTENT}"
+              BINARY_ARCHITECTURE=$(echo "$FILE_CONTENT" | grep -o "x86_64\|arm64" || echo "")
+              echo "DEBUG: Found architecture: ${BINARY_ARCHITECTURE}"
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86_64" ;;
                 "aarch64") EXPECTED_BINARY_ARCHITECTURE="arm64" ;;
@@ -87,8 +90,11 @@ jobs:
               ;;
             *"-linux-"*)
               FILE_OUTPUT=$(file "${BINARY_PATH}")
-              echo "DEBUG: Linux file output: ${FILE_OUTPUT}"
-              BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "x86-64\|aarch64" || echo "")
+              echo "DEBUG: Full file output: ${FILE_OUTPUT}"
+              FILE_CONTENT=${FILE_OUTPUT#"${BINARY_PATH}: "}
+              echo "DEBUG: After removing prefix: ${FILE_CONTENT}"
+              BINARY_ARCHITECTURE=$(echo "$FILE_CONTENT" | grep -o "x86-64\|aarch64" || echo "")
+              echo "DEBUG: Found architecture: ${BINARY_ARCHITECTURE}"
               case "${TARGET_ARCHITECTURE}" in
                 "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86-64" ;;
                 "aarch64") EXPECTED_BINARY_ARCHITECTURE="aarch64" ;;
