@@ -106,32 +106,18 @@ jobs:
               esac
               ;;
             *"-windows-"*)
-              echo "DEBUG: Checking Windows binary: ${BINARY_PATH}"
-
-              echo "=== Testing file access ==="
-              FILETEST_OUT=$(powershell -Command "Test-Path '${BINARY_PATH}'; Write-Output 'File exists check done'" 2>&1) || echo "File test failed"
-              echo "File test output: ${FILETEST_OUT}"
-
-              echo "=== Basic file info ==="
-              FILEINFO_OUT=$(powershell -Command "Get-Item '${BINARY_PATH}' | Select-Object FullName, Length" 2>&1) || echo "File info failed"
-              echo "File info output: ${FILEINFO_OUT}"
-
-              echo "=== PE Header check ==="
-              PE_OUT=$(powershell -Command "
+              FILE_OUTPUT=$(powershell -Command "
                 \$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}');
-                \$peOffset = [System.BitConverter]::ToInt32(\$bytes, 0x3c);
-                \$machine = [System.BitConverter]::ToUInt16(\$bytes, \$peOffset + 4);
+                \$offset = [System.BitConverter]::ToInt32(\$bytes, 0x3c);
+                \$machine = [System.BitConverter]::ToUInt16(\$bytes, \$offset + 4);
                 Write-Output \$machine
               " 2>&1) || echo "PE check failed"
-              echo "PE Header output: ${PE_OUT}"
+              echo "PE Header output: ${FILE_OUTPUT}"
 
-              # Machine type constants:
-              # 0x8664 (34404) = AMD64
-              # 0x01c4 (452) = ARM64
-              case "${PE_OUT}" in
+              case "${FILE_OUTPUT}" in
                 *"34404"*) BINARY_ARCHITECTURE="X64" ;;     # 0x8664
                 *"43620"*) BINARY_ARCHITECTURE="Arm64" ;;   # 0xAA64
-                *) echo "Unknown PE machine type: ${PE_OUT}"; exit 1 ;;
+                *) echo "Unknown PE machine type: ${FILE_OUTPUT}"; exit 1 ;;
               esac
 
               case "${TARGET_ARCHITECTURE}" in
