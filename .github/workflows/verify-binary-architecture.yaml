@@ -68,32 +68,30 @@ jobs:
 
           TARGET_ARCHITECTURE="${${{ matrix.target }}%%-*}"
 
-          declare -A ARCHITECTURE_PATTERNS=(
-            ["darwin"]="x86_64\|arm64"
-            ["linux"]="x86-64\|aarch64"
-          )
-
-          declare -A ARCHITECTURE_MAP=(
-            ["darwin:x86_64"]="x86_64"
-            ["darwin:aarch64"]="arm64"
-            ["linux:x86_64"]="x86-64"
-            ["linux:aarch64"]="aarch64"
-            ["windows:x86_64"]="X64"
-            ["windows:aarch64"]="Arm64"
-          )
-
           case "${{ matrix.target }}" in
             *"-darwin"*)
-              BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "${ARCHITECTURE_PATTERNS["darwin"]}" || echo "")
-              EXPECTED_BINARY_ARCHITECTURE="${ARCHITECTURE_MAP["darwin:${TARGET_ARCHITECTURE}"]:-}"
+              BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "x86_64\|arm64" || echo "")
+              case "${TARGET_ARCHITECTURE}" in
+                "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86_64" ;;
+                "aarch64") EXPECTED_BINARY_ARCHITECTURE="arm64" ;;
+                *) echo "Unknown Darwin architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
+              esac
               ;;
             *"-linux-"*)
-              BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "${ARCHITECTURE_PATTERNS["linux"]}" || echo "")
-              EXPECTED_BINARY_ARCHITECTURE="${ARCHITECTURE_MAP["linux:${TARGET_ARCHITECTURE}"]:-}"
+              BINARY_ARCHITECTURE=$(file "${BINARY_PATH}" | grep -o "x86-64\|aarch64" || echo "")
+              case "${TARGET_ARCHITECTURE}" in
+                "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86-64" ;;
+                "aarch64") EXPECTED_BINARY_ARCHITECTURE="aarch64" ;;
+                *) echo "Unknown Linux architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
+              esac
               ;;
             *"-windows-"*)
               BINARY_ARCHITECTURE=$(powershell -Command "Get-Command ${BINARY_PATH} | Select-Object -ExpandProperty Architecture")
-              EXPECTED_BINARY_ARCHITECTURE="${ARCHITECTURE_MAP["windows:${TARGET_ARCHITECTURE}"]:-}"
+              case "${TARGET_ARCHITECTURE}" in
+                "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
+                "aarch64") EXPECTED_BINARY_ARCHITECTURE="Arm64" ;;
+                *) echo "Unknown Windows architecture: ${TARGET_ARCHITECTURE}"; exit 1 ;;
+              esac
               ;;
             *)
               echo "Unknown OS in target: '${{ matrix.target }}'"
