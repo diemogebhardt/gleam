@@ -72,4 +72,6 @@ jobs:
 
       - name: Verify binary architecture
         shell: bash
-        run: .github/scripts/verify-binary-architecture.sh "${{ matrix.target }}"
+        run: |
+          chmod +x .github/scripts/verify-binary-architecture.sh
+          .github/scripts/verify-binary-architecture.sh "${{ matrix.target }}"
