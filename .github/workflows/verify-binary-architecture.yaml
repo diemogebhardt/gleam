@@ -107,7 +107,7 @@ jobs:
               echo "=== Checking Linux binary ==="
               FILE_OUTPUT=$(file -b "${BINARY_PATH}")
               echo "File output: ${FILE_OUTPUT}"
-              BINARY_ARCHITECTURE=$(echo "${FILE_OUTPUT}" | grep -o "x86-64\|aarch64" || echo "")
+              BINARY_ARCHITECTURE=$(echo "${FILE_OUTPUT}" | grep -o "x86-64\|aarch64" | head -n1 || echo "")
               echo "Found architecture: ${BINARY_ARCHITECTURE}"
 
               case "${TARGET_ARCHITECTURE}" in
