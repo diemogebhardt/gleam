@@ -120,3 +120,4 @@ jobs:
           echo "BINARY_PATH: $BINARY_PATH"
           chmod +x .github/scripts/verify-binary-architecture-path.sh
           .github/scripts/verify-binary-architecture-path.sh "${{ matrix.target }}" "$BINARY_PATH"
+        if: ${{ matrix.run-integration-tests }}
