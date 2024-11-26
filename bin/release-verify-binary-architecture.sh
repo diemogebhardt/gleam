@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -xeuo pipefail
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <target-triple>"
@@ -70,5 +70,3 @@ if [[ "${BINARY_ARCHITECTURE}" != "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
     echo "Got: '${BINARY_ARCHITECTURE}'"
     exit 1
 fi
-
-# chmod +x
