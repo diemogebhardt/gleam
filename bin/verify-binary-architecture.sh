@@ -41,17 +41,13 @@ case "${TARGET_TRIPLE}" in
         ;;
     *"windows"*)
         # Parse binary architecture
-        pe_header_output=$(powershell -Command "
-          \$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}');
-          \$header_offset = [System.BitConverter]::ToInt32(\$bytes, 0x3c);
-          \$machine_type = [System.BitConverter]::ToUInt16(\$bytes, \$header_offset + 4);
-          \$machine_type
-        " 2>&1) || echo "PE header extraction failed"
-        # Map binary architecture
-        case "${pe_header_output}" in
-            *"34404"*) BINARY_ARCHITECTURE="X64" ;;   # 0x8664
-            *"43620"*) BINARY_ARCHITECTURE="Arm64" ;; # 0xAA64
-            *) echo "Unknown PE machine type: '${pe_header_output}'"; exit 1 ;;
+        file_output=$(file -b "${BINARY_PATH}")
+        BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86-64\|Aarch64" | head -n1 || echo "")
+        # Map expected binary architecture
+        case "${TARGET_ARCHITECTURE}" in
+            "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86-64" ;;
+            "aarch64") EXPECTED_BINARY_ARCHITECTURE="Aarch64" ;;
+            *) echo "Unknown Linux architecture: '${TARGET_ARCHITECTURE}'"; exit 1 ;;
         esac
         # Map expected binary architecture
         case "${TARGET_ARCHITECTURE}" in
