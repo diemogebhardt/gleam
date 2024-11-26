@@ -1,16 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <target-triple>"
-    exit 1
+if [ $# -ne 2 ]; then
+   echo "Usage: $0 <target-triple> <binary-path>"
+   exit 1
 fi
 TARGET_TRIPLE="$1"
-
-BINARY_PATH="target/${TARGET_TRIPLE}/release/gleam"
-if [[ "${TARGET_TRIPLE}" == *"windows"* ]]; then
-    BINARY_PATH="${BINARY_PATH}.exe"
-fi
+BINARY_PATH="$2"
 
 # Parse target architecture
 case "${TARGET_TRIPLE}" in
