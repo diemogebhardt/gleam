@@ -117,8 +117,8 @@ jobs:
       - name: Verify binary architecture
         shell: bash
         run: |
-          BINARY_PATH="target/${TARGET_TRIPLE}/release/gleam"
-          if [[ "${TARGET_TRIPLE}" == *"windows"* ]]; then
+          BINARY_PATH="target/${{ matrix.target }}/release/gleam"
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
               BINARY_PATH="${BINARY_PATH}.exe"
           fi
           echo "BINARY_PATH: $BINARY_PATH"
