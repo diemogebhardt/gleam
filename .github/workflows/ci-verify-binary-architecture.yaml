@@ -119,5 +119,5 @@ jobs:
               BINARY_PATH="${BINARY_PATH}.exe"
           fi
           echo "BINARY_PATH: $BINARY_PATH"
-          ./bin/verify-binary-architecture-path.sh "${{ matrix.target }}" "$BINARY_PATH"
+          ./bin/verify-binary-architecture.sh "${{ matrix.target }}" "$BINARY_PATH"
         if: ${{ matrix.run-integration-tests }}
