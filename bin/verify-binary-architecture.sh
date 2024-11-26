@@ -20,7 +20,6 @@ case "${TARGET_TRIPLE}" in
     *"darwin"*)
         # Parse binary architecture
         file_output=$(file -b "${BINARY_PATH}")
-        echo "file_output: $file_output"
         BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86_64\|arm64" || echo "")
         # Map expected binary architecture
         case "${TARGET_ARCHITECTURE}" in
@@ -32,7 +31,6 @@ case "${TARGET_TRIPLE}" in
     *"linux"*)
         # Parse binary architecture
         file_output=$(file -b "${BINARY_PATH}")
-        echo "file_output: $file_output"
         BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86-64\|aarch64" | head -n1 || echo "")
         # Map expected binary architecture
         case "${TARGET_ARCHITECTURE}" in
@@ -49,7 +47,6 @@ case "${TARGET_TRIPLE}" in
           \$machine_type = [System.BitConverter]::ToUInt16(\$bytes, \$header_offset + 4);
           \$machine_type
         " 2>&1) || echo "PE header extraction failed"
-        echo "pe_header_output: $pe_header_output"
         # Map binary architecture
         case "${pe_header_output}" in
             *"34404"*) BINARY_ARCHITECTURE="X64" ;;   # 0x8664
@@ -76,6 +73,3 @@ if [[ "${BINARY_ARCHITECTURE}" != "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
     echo "Got: '${BINARY_ARCHITECTURE}'"
     exit 1
 fi
-
-echo "Expected: '${EXPECTED_BINARY_ARCHITECTURE}'"
-echo "Got: '${BINARY_ARCHITECTURE}'"

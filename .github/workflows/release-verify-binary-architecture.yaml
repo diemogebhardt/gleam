@@ -75,9 +75,11 @@ jobs:
       - name: Verify binary architecture
         shell: bash
         run: |
+          set -xeuo pipefail
+
           BINARY_PATH="target/${{ matrix.target }}/release/gleam"
           if [[ "${{ matrix.target }}" == *"windows"* ]]; then
               BINARY_PATH="${BINARY_PATH}.exe"
           fi
-          echo "BINARY_PATH: $BINARY_PATH"
+
           ./bin/verify-binary-architecture.sh "${{ matrix.target }}" "$BINARY_PATH"
