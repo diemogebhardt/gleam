@@ -114,7 +114,7 @@ jobs:
         shell: bash
         run: |
           BINARY_PATH="${CARGO_HOME}/bin/gleam"
-          if [[ "${TARGET_TRIPLE}" == *"windows"* ]]; then
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
               BINARY_PATH="${BINARY_PATH}.exe"
           fi
           echo "BINARY_PATH: $BINARY_PATH"
