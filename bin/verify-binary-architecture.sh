@@ -10,23 +10,23 @@ TARGET_TRIPLE="$1"
 BINARY_PATH="$2"
 
 # Extract target architecture and OS
-TARGET_ARCHITECTURE=$(echo "${TARGET_TRIPLE}" | grep -o 'x86_64\|aarch64' || echo "unknown")
 TARGET_OS=$(echo "${TARGET_TRIPLE}" | grep -o 'darwin\|linux\|windows' || echo "unknown")
+TARGET_ARCHITECTURE=$(echo "${TARGET_TRIPLE}" | grep -o 'x86_64\|aarch64' || echo "unknown")
 
 # Validate inputs
-if [ "$TARGET_ARCHITECTURE" = "unknown" ]; then
-  echo "Unknown target architecture in '${TARGET_TRIPLE}'"
-  exit 1
-fi
 if [ "$TARGET_OS" = "unknown" ]; then
   echo "Unknown target OS in '${TARGET_TRIPLE}'"
+  exit 1
+fi
+if [ "$TARGET_ARCHITECTURE" = "unknown" ]; then
+  echo "Unknown target architecture in '${TARGET_TRIPLE}'"
   exit 1
 fi
 
 # Get expected binary architecture based on target architecture and OS
 get_expected_binary_architecture() {
-  local target_architecture="$1"
-  local target_os="$2"
+  local target_os="$1"
+  local target_architecture="$2"
 
   case "${target_os}" in
     "darwin")
@@ -49,7 +49,7 @@ get_expected_binary_architecture() {
       ;;
   esac
 }
-EXPECTED_BINARY_ARCHITECTURE=$(get_expected_binary_architecture "$TARGET_ARCHITECTURE" "$TARGET_OS")
+EXPECTED_BINARY_ARCHITECTURE=$(get_expected_binary_architecture "$TARGET_OS" "$TARGET_ARCHITECTURE")
 
 # Parse binary architecture
 file_output=$(file -b "${BINARY_PATH}")
