@@ -69,3 +69,6 @@ if [[ "${BINARY_ARCHITECTURE}" != "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
     echo "Got: '${BINARY_ARCHITECTURE}'"
     exit 1
 fi
+
+echo "Expected: '${EXPECTED_BINARY_ARCHITECTURE}'"
+echo "Got: '${BINARY_ARCHITECTURE}'"
