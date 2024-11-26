@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -xeuo pipefail
 
 if [ $# -ne 2 ]; then
    echo "Usage: $0 <target-triple> <binary-path>"
@@ -15,12 +15,14 @@ case "${TARGET_TRIPLE}" in
     *) echo "Unknown target architecture '${TARGET_TRIPLE}'"; exit 1 ;;
 esac
 
-# Parse binary architecture and expected binary architecture for OS
+# Parse binary architecture and map expected binary architecture for target OS
 case "${TARGET_TRIPLE}" in
     *"darwin"*)
+        # Parse binary architecture
         file_output=$(file -b "${BINARY_PATH}")
         echo "file_output: $file_output"
         BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86_64\|arm64" || echo "")
+        # Map expected binary architecture
         case "${TARGET_ARCHITECTURE}" in
             "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86_64" ;;
             "aarch64") EXPECTED_BINARY_ARCHITECTURE="arm64" ;;
@@ -28,9 +30,11 @@ case "${TARGET_TRIPLE}" in
         esac
         ;;
     *"linux"*)
+        # Parse binary architecture
         file_output=$(file -b "${BINARY_PATH}")
         echo "file_output: $file_output"
         BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86-64\|aarch64" | head -n1 || echo "")
+        # Map expected binary architecture
         case "${TARGET_ARCHITECTURE}" in
             "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86-64" ;;
             "aarch64") EXPECTED_BINARY_ARCHITECTURE="aarch64" ;;
@@ -38,6 +42,7 @@ case "${TARGET_TRIPLE}" in
         esac
         ;;
     *"windows"*)
+        # Parse binary architecture
         pe_header_output=$(powershell -Command "
           \$bytes = [System.IO.File]::ReadAllBytes('${BINARY_PATH}');
           \$header_offset = [System.BitConverter]::ToInt32(\$bytes, 0x3c);
@@ -45,11 +50,13 @@ case "${TARGET_TRIPLE}" in
           \$machine_type
         " 2>&1) || echo "PE header extraction failed"
         echo "pe_header_output: $pe_header_output"
+        # Map binary architecture
         case "${pe_header_output}" in
             *"34404"*) BINARY_ARCHITECTURE="X64" ;;   # 0x8664
             *"43620"*) BINARY_ARCHITECTURE="Arm64" ;; # 0xAA64
             *) echo "Unknown PE machine type: '${pe_header_output}'"; exit 1 ;;
         esac
+        # Map expected binary architecture
         case "${TARGET_ARCHITECTURE}" in
             "x86_64") EXPECTED_BINARY_ARCHITECTURE="X64" ;;
             "aarch64") EXPECTED_BINARY_ARCHITECTURE="Arm64" ;;
@@ -72,5 +79,3 @@ fi
 
 echo "Expected: '${EXPECTED_BINARY_ARCHITECTURE}'"
 echo "Got: '${BINARY_ARCHITECTURE}'"
-
-# chmod +x
