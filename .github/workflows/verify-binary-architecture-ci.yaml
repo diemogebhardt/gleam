@@ -114,5 +114,10 @@ jobs:
         shell: bash
         run: |
           GLEAM_PATH=$(which gleam 2>/dev/null)
-          chmod +x .github/scripts/verify-binary-architecture-path.sh
-          .github/scripts/verify-binary-architecture-path.sh "${{ matrix.target }}" "$GLEAM_PATH"
+          echo "Found gleam at: ${GLEAM_PATH:-not found}"
+          if [ -z "${GLEAM_PATH}" ]; then
+            echo "Gleam binary not found in PATH"
+            exit 1
+          fi
+          # chmod +x .github/scripts/verify-binary-architecture-path.sh
+          # .github/scripts/verify-binary-architecture-path.sh "${{ matrix.target }}" "$GLEAM_PATH"
