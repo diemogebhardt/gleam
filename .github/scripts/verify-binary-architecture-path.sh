@@ -19,6 +19,7 @@ esac
 case "${TARGET_TRIPLE}" in
     *"darwin"*)
         file_output=$(file -b "${BINARY_PATH}")
+        echo "file_output: $file_output"
         BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86_64\|arm64" || echo "")
         case "${TARGET_ARCHITECTURE}" in
             "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86_64" ;;
@@ -28,6 +29,7 @@ case "${TARGET_TRIPLE}" in
         ;;
     *"linux"*)
         file_output=$(file -b "${BINARY_PATH}")
+        echo "file_output: $file_output"
         BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86-64\|aarch64" | head -n1 || echo "")
         case "${TARGET_ARCHITECTURE}" in
             "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86-64" ;;
@@ -42,6 +44,7 @@ case "${TARGET_TRIPLE}" in
           \$machine_type = [System.BitConverter]::ToUInt16(\$bytes, \$header_offset + 4);
           \$machine_type
         " 2>&1) || echo "PE header extraction failed"
+        echo "pe_header_output: $pe_header_output"
         case "${pe_header_output}" in
             *"34404"*) BINARY_ARCHITECTURE="X64" ;;   # 0x8664
             *"43620"*) BINARY_ARCHITECTURE="Arm64" ;; # 0xAA64
