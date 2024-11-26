@@ -113,6 +113,11 @@ jobs:
       - name: Verify binary architecture
         shell: bash
         run: |
+          echo "-------------------------"
+          echo "PATH: $PATH"
+          echo "WHICH: $(which gleam 2>/dev/null)"
+          echo "WHERE: $(where gleam 2>/dev/null)"
+          echo "-------------------------"
           GLEAM_PATH=$(which gleam 2>/dev/null)
           echo "Found gleam at: ${GLEAM_PATH:-not found}"
           if [ -z "${GLEAM_PATH}" ]; then
