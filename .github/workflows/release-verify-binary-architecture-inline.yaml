@@ -81,7 +81,6 @@ jobs:
           if [[ "${{ matrix.target }}" == *"windows"* ]]; then
               BINARY_PATH="${BINARY_PATH}.exe"
           fi
-          echo "BINARY_PATH: $BINARY_PATH"
 
           # Parse target architecture
           case "${{ matrix.target }}" in
@@ -95,7 +94,6 @@ jobs:
               *"darwin"*)
                   # Parse binary architecture
                   file_output=$(file -b "${BINARY_PATH}")
-                  echo "file_output: $file_output"
                   BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86_64\|arm64" || echo "")
                   # Map expected binary architecture
                   case "${TARGET_ARCHITECTURE}" in
@@ -107,7 +105,6 @@ jobs:
               *"linux"*)
                   # Parse binary architecture
                   file_output=$(file -b "${BINARY_PATH}")
-                  echo "file_output: $file_output"
                   BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86-64\|aarch64" | head -n1 || echo "")
                   # Map expected binary architecture
                   case "${TARGET_ARCHITECTURE}" in
@@ -124,7 +121,6 @@ jobs:
                     \$machine_type = [System.BitConverter]::ToUInt16(\$bytes, \$header_offset + 4);
                     \$machine_type
                   " 2>&1) || echo "PE header extraction failed"
-                  echo "pe_header_output: $pe_header_output"
                   # Map binary architecture
                   case "${pe_header_output}" in
                       *"34404"*) BINARY_ARCHITECTURE="X64" ;;   # 0x8664
@@ -151,6 +147,3 @@ jobs:
               echo "Got: '${BINARY_ARCHITECTURE}'"
               exit 1
           fi
-
-          echo "Expected: '${EXPECTED_BINARY_ARCHITECTURE}'"
-          echo "Got: '${BINARY_ARCHITECTURE}'"
