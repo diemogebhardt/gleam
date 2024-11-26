@@ -1,6 +1,8 @@
-name: verify-binary-architecture-release
-on: workflow_dispatch
-# on: push
+name: release-verify-binary-architecture
+
+on:
+  workflow_dispatch:
+  push:
 
 env:
   CARGO_TERM_COLOR: always
