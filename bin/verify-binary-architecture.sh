@@ -42,7 +42,7 @@ case "${TARGET_TRIPLE}" in
     *"windows"*)
         # Parse binary architecture
         file_output=$(file -b "${BINARY_PATH}")
-        BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86-64\|Aarch64" | head -n1 || echo "")
+        BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -o "x86-64\|Aarch64" || echo "")
         # Map expected binary architecture
         case "${TARGET_ARCHITECTURE}" in
             "x86_64") EXPECTED_BINARY_ARCHITECTURE="x86-64" ;;
