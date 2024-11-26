@@ -9,7 +9,7 @@ fi
 TARGET_TRIPLE="$1"
 BINARY_PATH="$2"
 
-# Extract target architecture and OS
+# Extract target OS and architecture
 TARGET_OS=$(echo "${TARGET_TRIPLE}" | grep -Eo "darwin|linux|windows" || echo "unknown")
 TARGET_ARCHITECTURE=$(echo "${TARGET_TRIPLE}" | grep -Eo "x86_64|aarch64" || echo "unknown")
 
@@ -23,7 +23,7 @@ if [ "$TARGET_ARCHITECTURE" = "unknown" ]; then
   exit 1
 fi
 
-# Get expected binary architecture based on target architecture and OS
+# Get expected binary architecture based on target OS and architecture
 get_expected_binary_architecture() {
   local target_os="$1"
   local target_architecture="$2"
