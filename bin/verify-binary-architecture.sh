@@ -72,3 +72,5 @@ fi
 
 echo "Expected: '${EXPECTED_BINARY_ARCHITECTURE}'"
 echo "Got: '${BINARY_ARCHITECTURE}'"
+
+# chmod +x
