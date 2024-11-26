@@ -118,5 +118,5 @@ jobs:
               BINARY_PATH="${BINARY_PATH}.exe"
           fi
           echo "BINARY_PATH: $BINARY_PATH"
-          # chmod +x .github/scripts/verify-binary-architecture-path.sh
-          # .github/scripts/verify-binary-architecture-path.sh "${{ matrix.target }}" "$GLEAM_PATH"
+          chmod +x .github/scripts/verify-binary-architecture-path.sh
+          .github/scripts/verify-binary-architecture-path.sh "${{ matrix.target }}" "$BINARY_PATH"
