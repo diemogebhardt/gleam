@@ -70,3 +70,5 @@ if [[ "${BINARY_ARCHITECTURE}" != "${EXPECTED_BINARY_ARCHITECTURE}" ]]; then
     echo "Got: '${BINARY_ARCHITECTURE}'"
     exit 1
 fi
+
+# chmod +x
