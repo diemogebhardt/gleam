@@ -2,7 +2,7 @@ name: run-bash
 
 on:
   workflow_dispatch:
-  push:
+  # push:
 
 jobs:
   run-bash:
