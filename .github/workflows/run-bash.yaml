@@ -68,9 +68,14 @@ jobs:
           args: --release --target ${{ matrix.target }}
           use-cross: ${{ matrix.use-cross }}
 
-      - name: Verify binary architecture
+      - name: Test file output
         shell: bash
         run: |
           set -xeuo pipefail
 
-          file
+          BINARY_PATH="target/${{ matrix.target }}/release/gleam"
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+              BINARY_PATH="${BINARY_PATH}.exe"
+          fi
+
+          file_output=$(file "${BINARY_PATH}")
