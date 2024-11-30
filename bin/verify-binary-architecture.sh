@@ -31,8 +31,10 @@ BINARY_ARCHITECTURE=$(parse_and_normalize_binary_architecture "$BINARY_PATH")
 
 # Verify that binary architecture matches target architecture
 if [ "$BINARY_ARCHITECTURE" != "$TARGET_ARCHITECTURE" ]; then
-  echo "Architecture mismatch for '$TARGET_TRIPLE'"
+  echo "Architecture mismatch for '$TARGET_TRIPLE'!"
   echo "Expected: '$TARGET_ARCHITECTURE'"
   echo "Got: '$BINARY_ARCHITECTURE'"
   exit 1
 fi
+
+echo "Architecture match for '$TARGET_TRIPLE'!"
