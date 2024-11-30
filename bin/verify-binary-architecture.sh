@@ -24,8 +24,7 @@ normalize_architecture() {
     *) echo "unknown" ;;
   esac
 }
-file_output=$(file -b "${BINARY_PATH}")
-BINARY_ARCHITECTURE=$(echo "${file_output}" | grep -Eo "x86_64|x86-64|arm64|aarch64|Aarch64" | head -n1)
+BINARY_ARCHITECTURE=$(file -b "${BINARY_PATH}" | grep -Eo "x86_64|x86-64|arm64|aarch64|Aarch64" | head -n1)
 BINARY_ARCHITECTURE=$(normalize_architecture "$BINARY_ARCHITECTURE")
 
 # Verify that binary architecture matches target architecture
