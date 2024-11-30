@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
+
 if [ $# -ne 2 ]; then
   echo "Usage: $0 <target-triple> <binary-path>"
   exit 1
@@ -9,21 +10,21 @@ BINARY_PATH="$2"
 BINARY_FILE_TYPE=$(file -b "$BINARY_PATH")
 
 # Architecture patterns
+ARCHITECTURE_PATTERNS_FOR_AARCH64='aarch64|Aarch64|arm64'
 ARCHITECTURE_PATTERNS_FOR_X86_64='x86-64|x86_64'
-ARCHITECTURE_PATTERNS_FOR_AARCH64='arm64|aarch64|Aarch64'
 
 # Architecture helper functions
 parse_architecture() {
-  grep -E \
-    -o "$ARCHITECTURE_PATTERNS_FOR_X86_64" \
-    -o "$ARCHITECTURE_PATTERNS_FOR_AARCH64" \
+  grep -Eo \
+    -e "$ARCHITECTURE_PATTERNS_FOR_AARCH64" \
+    -e "$ARCHITECTURE_PATTERNS_FOR_X86_64" \
     | head -n1
 }
 
 normalize_architecture() {
   sed -E \
-    -e "s/($ARCHITECTURE_PATTERNS_FOR_X86_64)/x86-64/" \
-    -e "s/($ARCHITECTURE_PATTERNS_FOR_AARCH64)/AArch64/"
+    -e "s/($ARCHITECTURE_PATTERNS_FOR_AARCH64)/AArch64/" \
+    -e "s/($ARCHITECTURE_PATTERNS_FOR_X86_64)/x86-64/"
 }
 
 # Parse and normalize architectures
