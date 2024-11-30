@@ -8,30 +8,29 @@ fi
 TARGET_TRIPLE="$1"
 BINARY_PATH="$2"
 
-# Extract and validate target architecture
-TARGET_ARCHITECTURE=$(echo "${TARGET_TRIPLE}" | grep -Eo "x86_64|aarch64" || echo "unknown")
-if [ "$TARGET_ARCHITECTURE" = "unknown" ]; then
-  echo "Unknown target architecture in '${TARGET_TRIPLE}'"
-  exit 1
-fi
+# Parse target architecture
+parse_and_validate_target_architecture() {
+  local target_triple="$1"
+  local parse="x86_64|aarch64"
+  local error="unknown target architecture"
+  echo "$target_triple" | grep -Eo "$parse" || echo "$error"
+}
+TARGET_ARCHITECTURE=$(parse_and_validate_target_architecture "$TARGET_TRIPLE")
 
 # Parse and normalize binary architecture
-parse_and_normalize_architecture() {
+parse_and_normalize_binary_architecture() {
   local binary_path="$1"
-  local file_output=$(file -b "${binary_path}")
-  local binary_architecture=$(echo "$file_output" | grep -Eo "x86_64|x86-64|arm64|aarch64|Aarch64" | head -n1)
-  case "$binary_architecture" in
-    "x86_64"|"x86-64") echo "x86_64" ;;
-    "arm64"|"aarch64"|"Aarch64") echo "aarch64" ;;
-    *) echo "unknown" ;;
-  esac
+  local parse="x86_64|x86-64|arm64|aarch64|Aarch64"
+  local normalize='s/x86-64/x86_64/;s/(arm64|Aarch64)/aarch64/'
+  local error="unknown binary architecture"
+  file -b "$binary_path" | grep -Eo "$parse" | sed -E "$normalize" || echo "$error"
 }
-BINARY_ARCHITECTURE=$(parse_and_normalize_architecture "${BINARY_PATH}")
+BINARY_ARCHITECTURE=$(parse_and_normalize_binary_architecture "$BINARY_PATH")
 
 # Verify that binary architecture matches target architecture
 if [ "$BINARY_ARCHITECTURE" != "$TARGET_ARCHITECTURE" ]; then
-  echo "Architecture mismatch for '${TARGET_TRIPLE}'"
-  echo "Expected: '${TARGET_ARCHITECTURE}'"
-  echo "Got: '${BINARY_ARCHITECTURE}'"
+  echo "Architecture mismatch for '$TARGET_TRIPLE'"
+  echo "Expected: '$TARGET_ARCHITECTURE'"
+  echo "Got: '$BINARY_ARCHITECTURE'"
   exit 1
 fi
