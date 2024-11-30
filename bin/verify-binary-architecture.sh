@@ -9,13 +9,13 @@ TARGET_TRIPLE="$1"
 BINARY_PATH="$2"
 
 # Parse target architecture
-parse_and_validate_target_architecture() {
+parse_target_architecture() {
   local target_triple="$1"
   local parse="x86_64|aarch64"
   local error="unknown target architecture"
   echo "$target_triple" | grep -Eo "$parse" || echo "$error"
 }
-TARGET_ARCHITECTURE=$(parse_and_validate_target_architecture "$TARGET_TRIPLE")
+TARGET_ARCHITECTURE=$(parse_target_architecture "$TARGET_TRIPLE")
 
 # Parse and normalize binary architecture
 parse_and_normalize_binary_architecture() {
@@ -23,7 +23,7 @@ parse_and_normalize_binary_architecture() {
   local parse="x86_64|x86-64|arm64|aarch64|Aarch64"
   local normalize='s/x86-64/x86_64/;s/(arm64|Aarch64)/aarch64/'
   local error="unknown binary architecture"
-  file -b "$binary_path" | grep -Eo "$parse" | sed -E "$normalize" || echo "$error"
+  file -b "$binary_path" | grep -Eo "$parse" | head -n1 | sed -E "$normalize" || echo "$error"
 }
 BINARY_ARCHITECTURE=$(parse_and_normalize_binary_architecture "$BINARY_PATH")
 
