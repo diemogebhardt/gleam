@@ -1,34 +1,40 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
-
 if [ $# -ne 2 ]; then
   echo "Usage: $0 <target-triple> <binary-path>"
   exit 1
 fi
 TARGET_TRIPLE="$1"
 BINARY_PATH="$2"
+BINARY_FILE_TYPE=$(file -b "$BINARY_PATH")
+
+# Architecture patterns
+ARCHITECTURE_PATTERNS_FOR_X86_64='x86-64|x86_64'
+ARCHITECTURE_PATTERNS_FOR_AARCH64='arm64|aarch64|Aarch64'
 
 # Architecture helper functions
-parse() { grep -Eo 'x86_64|x86-64|arm64|aarch64|Aarch64' | head -n1; }
-normalize() { sed -E 's/(x86-64|x86_64)/x86-64/;s/(arm64|aarch64|Aarch64)/AArch64/'; }
-unknown_architecture_for() { echo "unknown $1 architecture"; }
-
-# Parse target architecture
-parse_target_architecture() {
-  local target_triple="$1"
-  get() { echo "$target_triple"; }
-  get | parse | normalize || unknown_architecture_for "target"
+parse_architecture() {
+  grep -E \
+    -o "$ARCHITECTURE_PATTERNS_FOR_X86_64" \
+    -o "$ARCHITECTURE_PATTERNS_FOR_AARCH64" \
+    | head -n1
 }
-TARGET_ARCHITECTURE=$(parse_target_architecture "$TARGET_TRIPLE")
 
-# Parse and normalize binary architecture
-parse_and_normalize_binary_architecture() {
-  local binary_path="$1"
-  debug_pipe() { tee >(cat >&2); }
-  get() { file -b "$binary_path" | debug_pipe; }
-  get | parse | normalize || unknown_architecture_for "binary"
+normalize_architecture() {
+  sed -E \
+    -e "s/($ARCHITECTURE_PATTERNS_FOR_X86_64)/x86-64/" \
+    -e "s/($ARCHITECTURE_PATTERNS_FOR_AARCH64)/AArch64/"
 }
-BINARY_ARCHITECTURE=$(parse_and_normalize_binary_architecture "$BINARY_PATH")
+
+# Parse and normalize architectures
+TARGET_ARCHITECTURE=$(
+  echo "$TARGET_TRIPLE" | parse_architecture | normalize_architecture \
+  || echo "unknown target architecture"
+)
+BINARY_ARCHITECTURE=$(
+  echo "$BINARY_FILE_TYPE" | parse_architecture | normalize_architecture \
+  || echo "unknown binary architecture"
+)
 
 # Verify that binary architecture matches target architecture
 if [ "$BINARY_ARCHITECTURE" != "$TARGET_ARCHITECTURE" ]; then
