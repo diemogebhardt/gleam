@@ -16,16 +16,17 @@ if [ "$TARGET_ARCHITECTURE" = "unknown" ]; then
 fi
 
 # Parse and normalize binary architecture
-normalize_architecture() {
-  local architecture="$1"
-  case "$architecture" in
+parse_and_normalize_architecture() {
+  local binary_path="$1"
+  local file_output=$(file -b "${binary_path}")
+  local binary_architecture=$(echo "$file_output" | grep -Eo "x86_64|x86-64|arm64|aarch64|Aarch64" | head -n1)
+  case "$binary_architecture" in
     "x86_64"|"x86-64") echo "x86_64" ;;
     "arm64"|"aarch64"|"Aarch64") echo "aarch64" ;;
     *) echo "unknown" ;;
   esac
 }
-BINARY_ARCHITECTURE=$(file -b "${BINARY_PATH}" | grep -Eo "x86_64|x86-64|arm64|aarch64|Aarch64" | head -n1)
-BINARY_ARCHITECTURE=$(normalize_architecture "$BINARY_ARCHITECTURE")
+BINARY_ARCHITECTURE=$(parse_and_normalize_architecture "${BINARY_PATH}")
 
 # Verify that binary architecture matches target architecture
 if [ "$BINARY_ARCHITECTURE" != "$TARGET_ARCHITECTURE" ]; then
