@@ -8,6 +8,9 @@ fi
 TARGET_TRIPLE="$1"
 BINARY_PATH="$2"
 
+# Helper functions
+debug_pipe() { tee >(cat >&2); }
+
 # Parse target architecture
 parse_target_architecture() {
   local target_triple="$1"
@@ -21,7 +24,7 @@ TARGET_ARCHITECTURE=$(parse_target_architecture "$TARGET_TRIPLE")
 # Parse and normalize binary architecture
 parse_and_normalize_binary_architecture() {
   local binary_path="$1"
-  get() { file -b "$binary_path" | tee >(cat >&2); }
+  get() { file -b "$binary_path" | debug_pipe; }
   parse() { grep -Eo 'x86_64|x86-64|arm64|aarch64|Aarch64' | head -n1; }
   normalize() { sed -E 's/x86-64/x86_64/;s/(arm64|Aarch64)/aarch64/'; }
   fail() { echo "unknown binary architecture"; }
