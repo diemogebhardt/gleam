@@ -28,7 +28,7 @@ jobs:
 
   build-nightly-clean:
     runs-on: ubuntu-latest
-    needs: [ nightly-last-run ]
+    needs: [nightly-last-run]
     # if: ${{ github.repository_owner == 'gleam-lang' && needs.nightly-last-run.outputs.should_run != 'false' }}
     steps:
       - name: Delete old release assets
@@ -47,7 +47,7 @@ jobs:
   build-nightly:
     name: build-release
     runs-on: ${{ matrix.os }}
-    needs: [ build-nightly-clean ]
+    needs: [build-nightly-clean]
     # if: ${{ github.repository_owner == 'gleam-lang' }}
     strategy:
       matrix:
@@ -81,11 +81,11 @@ jobs:
           # macos>=14 runs exclusively on aarch64 and will thus fail to execute properly for x64
           - os: macos-13
             target: x86_64-apple-darwin
-            binary: x86-64
+            binary: x86_64
             use-cross: false
           - os: macos-latest
             target: aarch64-apple-darwin
-            binary: aarch64
+            binary: arm64
             use-cross: false
           - os: windows-latest
             target: x86_64-pc-windows-msvc

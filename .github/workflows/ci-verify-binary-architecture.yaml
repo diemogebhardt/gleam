@@ -59,13 +59,13 @@ jobs:
           # macos>=14 runs exclusively on aarch64 and will thus fail to execute properly for x64
           - os: macos-13 # intel
             target: x86_64-apple-darwin
-            binary: x86-64
+            binary: x86_64
             use-cross: false
             run-integration-tests: true
           - os: macos-latest # aarch64
             toolchain: stable
             target: aarch64-apple-darwin
-            binary: aarch64
+            binary: arm64
             use-cross: false
             run-integration-tests: true
           - os: windows-latest
