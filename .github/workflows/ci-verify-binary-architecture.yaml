@@ -141,3 +141,4 @@ jobs:
           fi
 
           echo "ok: Architecture match"
+        if: ${{ matrix.run-integration-tests }}
