@@ -75,7 +75,7 @@ jobs:
             run-integration-tests: true
           - os: windows-latest
             target: aarch64-pc-windows-msvc
-            binary: aarch64
+            binary: Aarch64
             use-cross: false
             run-integration-tests: true
     steps:
