@@ -64,28 +64,36 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            binary: x86-64
             use-cross: false
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
+            binary: aarch64
             use-cross: true
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
+            binary: x86-64
             use-cross: true
           - os: ubuntu-latest
             target: aarch64-unknown-linux-musl
+            binary: aarch64
             use-cross: true
           # macos>=14 runs exclusively on aarch64 and will thus fail to execute properly for x64
           - os: macos-13
             target: x86_64-apple-darwin
+            binary: x86-64
             use-cross: false
           - os: macos-latest
             target: aarch64-apple-darwin
+            binary: aarch64
             use-cross: false
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+            binary: x86-64
             use-cross: false
           - os: windows-latest
             target: aarch64-pc-windows-msvc
+            binary: aarch64
             use-cross: false
     steps:
       - name: Checkout repository
@@ -124,4 +132,11 @@ jobs:
               BINARY_PATH="${BINARY_PATH}.exe"
           fi
 
-          ./bin/verify-binary-architecture.sh "${{ matrix.target }}" "$BINARY_PATH"
+          if ! file -b "$BINARY_PATH" | grep -q "${{ matrix.binary }}"; then
+            echo "error: Architecture mismatch"
+            echo "Expected architecture: '${{ matrix.binary }}'"
+            echo "Binary type: '$(file -b "$BINARY_PATH")'"
+            exit 1
+          fi
+
+          echo "ok: Architecture match"
